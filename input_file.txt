@@ -1,13 +1,5 @@
-6
-*,b,*
-a,*,*
-*,*,c
-foo,bar,baz
-w,x,*,*
-*,x,y,z
-5
+2
+w,*,y,z
+*,x,*,z
+1
 /w/x/y/z/
-a/b/c
-foo/
-foo/bar/
-foo/bar/baz/
