@@ -4,6 +4,9 @@ Created on Dec 14, 2013
 @author: jedwards
 
 NOTES:
+FIXME: WHAT IS COMPLEXITY?
+This runs in O(M log N) time, where N is the number of patterns and M is the number of paths. Assuming an normal distribution of pattern lengths, this should be faster than O(M^N) time.
+
 I made the following assumptions when writing this program:
 - Based no the statement "For a pattern to match a path, each field in the pattern must exactly match the corresponding field in the path.", I assume that matching is case-sensitive. 
 - Because it wasn't explicitly stated otherwise, I will assume that paths CAN have asterisks. If a path has an asterisk, I will give weight to a direct match (with pattern asterisk) over it being a wildcard match. 
