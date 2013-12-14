@@ -27,7 +27,6 @@ TODO: Create a bunch of test files with known outputs:
 - paths containing multiple asterisks
 - patterns containing multiple asterisks
 '''
-# FIXME: Once the quadratic solution works, refactor to store patterns in hash table with pattern length as key.
 # TODO: Clean up and comment.
 
 class PatternMatcher(object):
@@ -37,17 +36,23 @@ class PatternMatcher(object):
     WILDCARD = '*'
     NO_MATCH = 'NO MATCH'
     # Class members.
-    patterns = []
+    patterns = {}
     paths = []
     
     def match(self, lines):
         '''
         The entry point for the pattern matching algorithm.
         '''
-        # Get patterns.
+        # Store patterns in a dictionary with len(pattern) as key.
         pattern_cnt = int(lines[0])
-        self.patterns = [self._parse_pattern(line) for line in lines[1:pattern_cnt + 1]] 
-        # Get paths.
+        for line in lines[1:pattern_cnt + 1]:
+            tmp_pattern = self._parse_pattern(line)
+            tmp_pattern_lenth = len(tmp_pattern) 
+            if tmp_pattern_lenth in self.patterns:
+                self.patterns[tmp_pattern_lenth].extend([tmp_pattern])
+            else:
+                self.patterns[tmp_pattern_lenth] = [tmp_pattern]
+        # Store paths in a flat list.
         path_cnt = int(lines[pattern_cnt + 1])
         # Note: If we can assume the input file will not contain extra characters at the end, then we can take a split until the end instead.
         self.paths = [self._parse_path(line) for line in lines[pattern_cnt + 2:pattern_cnt + 2 + path_cnt]]
@@ -66,22 +71,21 @@ class PatternMatcher(object):
         '''
         best_score = decimal.Decimal(sys.maxint)
         best_pattern = None
-        for pattern in self.patterns:
-            # Pattern and path have to be the same length.
-            if len(pattern) == len(path):
-                tmp_score_tuple = self._get_score(pattern, path)
-                # If the score is (0, 0), we have a perfect match. No need to continue the search.
-                if tmp_score_tuple[0] == 0 and tmp_score_tuple[1] == 0:
-                    return pattern
-                '''
-                To prevent ties between patterns with an equal number of wildcards, we create a decimal value consisting of:
-                (wildcard count as integer component) . (weighted value based on position of wildcards as decimal component)
-                This way, the wildcard count has greater weight.
-                '''
-                tmp_score = decimal.Decimal(str(tmp_score_tuple[0]) + '.' + str(int(tmp_score_tuple[1])))
-                if tmp_score < best_score:
-                    best_score = tmp_score
-                    best_pattern = pattern 
+        # Optimization: Since the pattern and path have to be the same length for there to be a match, we only look patterns of that length.
+        for pattern in self.patterns[len(path)]:
+            tmp_score_tuple = self._get_score(pattern, path)
+            # If the score is (0, 0), we have a perfect match. No need to continue the search.
+            if tmp_score_tuple[0] == 0 and tmp_score_tuple[1] == 0:
+                return pattern
+            '''
+            To prevent ties between patterns with an equal number of wildcards, we create a decimal value consisting of:
+            (wildcard count as integer component) . (weighted value based on position of wildcards as decimal component)
+            This way, the wildcard count has greater weight.
+            '''
+            tmp_score = decimal.Decimal(str(tmp_score_tuple[0]) + '.' + str(int(tmp_score_tuple[1])))
+            if tmp_score < best_score:
+                best_score = tmp_score
+                best_pattern = pattern 
         return best_pattern 
 
     def _get_score(self, pattern, path):
