@@ -2,21 +2,23 @@
 Created on Dec 14, 2013
 
 @author: jedwards
+
+NOTES:
+I made the following assumptions when writing this program:
+- Based no the statement "For a pattern to match a path, each field in the pattern must exactly match the corresponding field in the path.", I assume that matching is case-sensitive. 
+- Because it wasn't explicitly stated otherwise, I will assume that paths CAN have asterisks. If a path has an asterisk, I will give weight to a direct match (with pattern asterisk) over it being a wildcard match. 
+
 '''
+
 import sys
 import operator
 import math
 import decimal
-# import logging
 
-# TODO: Figure out logging (to file?) vs stdout for results.
-# TODO: Write and then refactor into methods.
-# TODO: Add try-catch? (Probably not necessary since program can just crash. 
-# FIXME: Once the quadratic solution works, refactor to store patterns in has tavke with pattern length as key.
 # TODO: Watch for blank patterns and/or paths.
-# TODO: Match case exactly?
-# TODO: Can paths have asterisk fields!?
-
+# TODO: Create a bunch of test files with known outputs.
+# FIXME: Once the quadratic solution works, refactor to store patterns in has tavke with pattern length as key.
+# TODO: Clean up and comment.
 
 class PatternMatcher(object):
     # Constants.
@@ -29,7 +31,9 @@ class PatternMatcher(object):
     paths = []
     
     def match(self, lines):
-        ''' Start the program. '''
+        '''
+        The entry point for the pattern matching algorithm.
+        '''
         # Get patterns.
         pattern_cnt = int(lines[0])
         self.patterns = [self._parse_pattern(line) for line in lines[1:pattern_cnt + 1]] 
@@ -39,22 +43,28 @@ class PatternMatcher(object):
         self.paths = [self._parse_path(line) for line in lines[pattern_cnt + 2:pattern_cnt + 2 + path_cnt]]
         # Loop through paths and find best match.
         for path in self.paths:
-            print self._find_best_match(path)
+            # Reformat the pattern and print.
+            print self.PATTERN_SEP.join(self._find_best_match(path))
     
     def _find_best_match(self, path):
-        # Check each pattern against this path.
+        '''
+        Check each pattern against this path.
+        '''
         best_score = decimal.Decimal(sys.maxint)
         best_pattern = self.NO_MATCH
         for pattern in self.patterns:
             # Pattern and path have to be the same length.
             if len(pattern) == len(path):
                 tmp_score_tuple = self._get_score(pattern, path)
+                # If the score is (0, 0), we have a perfect match. No need to continue the search.
+                if tmp_score_tuple[0] == 0 and tmp_score_tuple[1] == 0:
+                    return pattern
                 '''
                 To prevent ties between patterns with an equal number of wildcards, we create a decimal value consisting of:
                 (wildcard count as integer component) . (weighted value based on position of wildcards as decimal component)
                 This way, the wildcard count has greater weight.
                 '''
-                tmp_score = decimal.Decimal(str(tmp_score_tuple[0]) + '.' + str(int(tmp_score_tuple[1]))) 
+                tmp_score = decimal.Decimal(str(tmp_score_tuple[0]) + '.' + str(int(tmp_score_tuple[1])))
                 if tmp_score < best_score:
                     best_score = tmp_score
                     best_pattern = pattern 
@@ -62,19 +72,17 @@ class PatternMatcher(object):
 
     def _get_score(self, pattern, path):
         '''
-        Scoring - for each character:
-            Exact match: + (0, 0) and recurse
-            Wildcard match: + (1, 10^len(pattern - 1) and recurse
-            No match: return sys.maxint
-            
-            UPDATE:
-            *,*,y,z 2.1100
-            *,x,*,z 2.1010
+        Get the score for this pattern/path combination.
+        Scoring works like this:
+            For each character:
+                Exact match: + (0, 0) and recurse
+                Wildcard match: + (1, 10^len(pattern - 1) and recurse
+                No match: return (sys.maxint, 0)
         '''
         if pattern == None or len(pattern) == 0:
             # Exit condition: Done with this pattern.
             return (0, 0);
-        elif pattern[0] == path[0]:  # TODO: Watch casing?
+        elif pattern[0] == path[0]:
             return tuple(map(operator.add, (0, 0), self._get_score(pattern[1:], path[1:])))
         elif pattern[0] == self.WILDCARD:
             return tuple(map(operator.add, (1, math.pow(10, len(pattern) - 1)), self._get_score(pattern[1:], path[1:])))
@@ -83,18 +91,21 @@ class PatternMatcher(object):
             return (sys.maxint, 0)
 
     def _parse_pattern(self, pattern):
-        # Split string at separator.
+        '''
+        Split string at separator.
+        '''
         return pattern.split(self.PATTERN_SEP)
     
     def _parse_path(self, path):
-        # String leading/trailing slashes and split string at separator.
+        '''
+        Strip leading/trailing slashes and split string at separator.
+        '''
         return path.strip('/').split(self.PATH_SEP)
 
-
-
-
-
 if __name__ == '__main__':
+    '''
+    The main entry point for the prorgam.
+    '''
     ide = True
     patternMatcher = PatternMatcher()
     # Get lines from stdin.
