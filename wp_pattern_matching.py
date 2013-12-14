@@ -15,9 +15,19 @@ import operator
 import math
 import decimal
 
-# TODO: Watch for blank patterns and/or paths.
-# TODO: Create a bunch of test files with known outputs.
-# FIXME: Once the quadratic solution works, refactor to store patterns in has tavke with pattern length as key.
+'''
+TODO: Create a bunch of test files with known outputs:
+- multiple leading/trailing slashes in path
+- blank paths
+- patterns with whitespace elements
+- paths with whitespace elements
+- blank paths
+- case-sensitivity
+- paths containing asterisks
+- paths containing multiple asterisks
+- patterns containing multiple asterisks
+'''
+# FIXME: Once the quadratic solution works, refactor to store patterns in hash table with pattern length as key.
 # TODO: Clean up and comment.
 
 class PatternMatcher(object):
@@ -44,14 +54,18 @@ class PatternMatcher(object):
         # Loop through paths and find best match.
         for path in self.paths:
             # Reformat the pattern and print.
-            print self.PATTERN_SEP.join(self._find_best_match(path))
-    
+            match = self._find_best_match(path)
+            if match == None:
+                print self.NO_MATCH
+            else:
+                print self.PATTERN_SEP.join(match)
+
     def _find_best_match(self, path):
         '''
         Check each pattern against this path.
         '''
         best_score = decimal.Decimal(sys.maxint)
-        best_pattern = self.NO_MATCH
+        best_pattern = None
         for pattern in self.patterns:
             # Pattern and path have to be the same length.
             if len(pattern) == len(path):
@@ -106,12 +120,14 @@ if __name__ == '__main__':
     '''
     The main entry point for the prorgam.
     '''
+    # FIXME: Make sure this is False before submitting!
+    # ide = False
     ide = True
     patternMatcher = PatternMatcher()
-    # Get lines from stdin.
-    # HACK: When debugging in Aptana/PyDev, there's no stdin so read from file.
     if ide:
+        # HACK: When debugging in Aptana/PyDev, there's no stdin so read from file.
         lines = [line.strip() for line in open('input_file.txt')]
     else:
+        # Get lines from stdin.
         lines = [line.strip() for line in sys.stdin]
     patternMatcher.match(lines)
