@@ -66,8 +66,8 @@ class PatternMatcher(object):
         self.paths = [self._parse_path(line) for line in lines[pattern_cnt + 2:pattern_cnt + 2 + path_cnt]]
         # Loop through paths and find best match.
         for path in self.paths:
-            # Reformat the pattern and print.
             match = self._find_best_match(path)
+            # Reformat the pattern and print.
             if match == None:
                 print self.NO_MATCH
             else:
@@ -88,7 +88,7 @@ class PatternMatcher(object):
                     return pattern
                 '''
                 To prevent ties between patterns with an equal number of wildcards, we create a decimal value consisting of:
-                (wildcard count as integer component) . (weighted value based on position of wildcards as decimal component)
+                (wildcard count as integer component).(weighted value based on position of wildcards as decimal component)
                 This way, the wildcard count has greater weight.
                 '''
                 tmp_score = decimal.Decimal(str(tmp_score_tuple[0]) + '.' + str(int(tmp_score_tuple[1])))
@@ -105,6 +105,7 @@ class PatternMatcher(object):
                 Exact match: + (0, 0) and recurse
                 Wildcard match: + (1, 10^len(pattern - 1) and recurse
                 No match: return (sys.maxint, 0)
+            The lowest score wins.
         '''
         if pattern == None or len(pattern) == 0:
             # Exit condition: Done with this pattern.
