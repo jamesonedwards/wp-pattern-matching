@@ -1,15 +1,34 @@
 '''
 Created on Dec 14, 2013
 
-@author: jedwards
+@author: Jameson Edwards - jameson.edwards@gmail.com
 
-NOTES:
-FIXME: WHAT IS COMPLEXITY?
-This runs in O(M log N) time, where N is the number of patterns and M is the number of paths. Assuming an normal distribution of pattern lengths, this should be faster than O(M^N) time.
+Computational complexity:
+Taking advantage of the fact that we know the length of potentially matched patterns for a given path,
+I stored the patterns in a dictionary with length(pattern) as the key. Thus the worst case complexity
+(where every pattern is the same length) is O(N*M), where N is the number of patterns and M is the
+number of paths. In the best case (where every pattern is a different length), the complexity is O(M).
+Assuming an average distribution of pattern lengths, this should be faster than quadratic time.
 
 I made the following assumptions when writing this program:
-- Based no the statement "For a pattern to match a path, each field in the pattern must exactly match the corresponding field in the path.", I assume that matching is case-sensitive. 
-- Because it wasn't explicitly stated otherwise, I will assume that paths CAN have asterisks. If a path has an asterisk, I will give weight to a direct match (with pattern asterisk) over it being a wildcard match. 
+- Based on the statement "For a pattern to match a path, each field in the pattern must exactly match
+  the corresponding field in the path.", I assume that matching is case-sensitive.
+- Because it wasn't explicitly stated otherwise, I will assume that paths CAN have asterisks. If a
+  path has an asterisk, I will give weight to a direct match (with pattern asterisk) over it being a
+  wildcard match. 
+
+Input tests performed:
+- multiple leading/trailing slashes in path [PASS]
+- blank paths [PASS]
+- blank patterns [PASS]
+- patterns with whitespace elements [PASS]
+- paths with whitespace elements [PASS]
+- case-sensitivity [PASS]
+- paths containing asterisks [PASS]
+- paths containing multiple asterisks [PASS]
+- patterns containing multiple asterisks [PASS]
+- zero patterns [PASS]
+- zero paths [PASS]
 
 '''
 
@@ -17,20 +36,6 @@ import sys
 import operator
 import math
 import decimal
-
-'''
-TODO: Create a bunch of test files with known outputs:
-- multiple leading/trailing slashes in path
-- blank paths
-- patterns with whitespace elements
-- paths with whitespace elements
-- blank paths
-- case-sensitivity
-- paths containing asterisks
-- paths containing multiple asterisks
-- patterns containing multiple asterisks
-'''
-# TODO: Clean up and comment.
 
 class PatternMatcher(object):
     # Constants.
@@ -75,20 +80,21 @@ class PatternMatcher(object):
         best_score = decimal.Decimal(sys.maxint)
         best_pattern = None
         # Optimization: Since the pattern and path have to be the same length for there to be a match, we only look patterns of that length.
-        for pattern in self.patterns[len(path)]:
-            tmp_score_tuple = self._get_score(pattern, path)
-            # If the score is (0, 0), we have a perfect match. No need to continue the search.
-            if tmp_score_tuple[0] == 0 and tmp_score_tuple[1] == 0:
-                return pattern
-            '''
-            To prevent ties between patterns with an equal number of wildcards, we create a decimal value consisting of:
-            (wildcard count as integer component) . (weighted value based on position of wildcards as decimal component)
-            This way, the wildcard count has greater weight.
-            '''
-            tmp_score = decimal.Decimal(str(tmp_score_tuple[0]) + '.' + str(int(tmp_score_tuple[1])))
-            if tmp_score < best_score:
-                best_score = tmp_score
-                best_pattern = pattern 
+        if len(path) in self.patterns:
+            for pattern in self.patterns[len(path)]:
+                tmp_score_tuple = self._get_score(pattern, path)
+                # If the score is (0, 0), we have a perfect match. No need to continue the search.
+                if tmp_score_tuple[0] == 0 and tmp_score_tuple[1] == 0:
+                    return pattern
+                '''
+                To prevent ties between patterns with an equal number of wildcards, we create a decimal value consisting of:
+                (wildcard count as integer component) . (weighted value based on position of wildcards as decimal component)
+                This way, the wildcard count has greater weight.
+                '''
+                tmp_score = decimal.Decimal(str(tmp_score_tuple[0]) + '.' + str(int(tmp_score_tuple[1])))
+                if tmp_score < best_score:
+                    best_score = tmp_score
+                    best_pattern = pattern 
         return best_pattern 
 
     def _get_score(self, pattern, path):
@@ -127,13 +133,13 @@ if __name__ == '__main__':
     '''
     The main entry point for the prorgam.
     '''
-    # FIXME: Make sure this is False before submitting!
-    # ide = False
-    ide = True
+    # Make sure this is False before submitting!
+    # ide = True
+    ide = False
     patternMatcher = PatternMatcher()
     if ide:
         # HACK: When debugging in Aptana/PyDev, there's no stdin so read from file.
-        lines = [line.strip() for line in open('input_file.txt')]
+        lines = [line.strip() for line in open('input/input_file.txt')]
     else:
         # Get lines from stdin.
         lines = [line.strip() for line in sys.stdin]
