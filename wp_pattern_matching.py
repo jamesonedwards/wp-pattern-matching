@@ -91,7 +91,7 @@ class PatternMatcher(object):
                 (wildcard count as integer component).(weighted value based on position of wildcards as decimal component)
                 This way, the wildcard count has greater weight.
                 '''
-                tmp_score = decimal.Decimal(str(tmp_score_tuple[0]) + '.' + str(int(tmp_score_tuple[1])))
+                tmp_score = decimal.Decimal(str(tmp_score_tuple[0]) + '.' + str(int(tmp_score_tuple[1])).zfill(len(pattern)))
                 if tmp_score < best_score:
                     best_score = tmp_score
                     best_pattern = pattern 
